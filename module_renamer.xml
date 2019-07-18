@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_renamer" default="compile.module.renamer">
+  <dirname property="module.renamer.basedir" file="${ant.file.module_renamer}"/>
+  
+  <property name="module.jdk.home.renamer" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.renamer" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.renamer" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.renamer" value="-encoding UTF-8 -source 12 -target 12 ${compiler.args}"/>
+  
+  <property name="renamer.output.dir" value="${module.renamer.basedir}/out/production/Renamer"/>
+  <property name="renamer.testoutput.dir" value="${module.renamer.basedir}/out/test/Renamer"/>
+  
+  <path id="renamer.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="renamer.module.production.classpath">
+    <path refid="${module.jdk.classpath.renamer}"/>
+    <path refid="library.kotlinjavaruntime.classpath"/>
+  </path>
+  
+  <path id="renamer.runtime.production.module.classpath">
+    <pathelement location="${renamer.output.dir}"/>
+    <path refid="library.kotlinjavaruntime.classpath"/>
+  </path>
+  
+  <path id="renamer.module.classpath">
+    <path refid="${module.jdk.classpath.renamer}"/>
+    <pathelement location="${renamer.output.dir}"/>
+    <path refid="library.kotlinjavaruntime.classpath"/>
+  </path>
+  
+  <path id="renamer.runtime.module.classpath">
+    <pathelement location="${renamer.testoutput.dir}"/>
+    <pathelement location="${renamer.output.dir}"/>
+    <path refid="library.kotlinjavaruntime.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.renamer">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.renamer">
+    <patternset refid="excluded.from.module.renamer"/>
+  </patternset>
+  
+  <path id="renamer.module.sourcepath">
+    <dirset dir="${module.renamer.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.renamer" depends="compile.module.renamer.production,compile.module.renamer.tests" description="Compile module Renamer"/>
+  
+  <target name="compile.module.renamer.production" depends="register.custom.compilers" description="Compile module Renamer; production classes">
+    <mkdir dir="${renamer.output.dir}"/>
+    <javac2 destdir="${renamer.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.renamer}/javac">
+      <compilerarg line="${compiler.args.renamer}"/>
+      <bootclasspath refid="renamer.module.bootclasspath"/>
+      <classpath refid="renamer.module.production.classpath"/>
+      <src refid="renamer.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.renamer"/>
+    </javac2>
+    
+    <copy todir="${renamer.output.dir}">
+      <fileset dir="${module.renamer.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.renamer.tests" depends="register.custom.compilers,compile.module.renamer.production" description="compile module Renamer; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.renamer" description="cleanup module">
+    <delete dir="${renamer.output.dir}"/>
+    <delete dir="${renamer.testoutput.dir}"/>
+  </target>
+</project>
